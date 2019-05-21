@@ -1,7 +1,16 @@
 ################################################################################################
 # Defines global Caffe_LINK flag, This flag is required to prevent linker from excluding
 # some objects which are not addressed directly but are registered via static constructors
-macro(caffe_set_caffe_link)
+macro(caffe_set_caffe_link)  
+  if(MSVC AND CMAKE_GENERATOR MATCHES Ninja)        
+    foreach(_suffix "" ${CMAKE_CONFIGURATION_TYPES})
+      if(NOT _suffix STREQUAL "")
+        string(TOUPPER _${_suffix} _suffix)
+      endif()
+      set(CMAKE_CXX_FLAGS${_suffix} "${CMAKE_CXX_FLAGS${_suffix}} /FS")
+      set(CMAKE_C_FLAGS${_suffix} "${CMAKE_C_FLAGS${_suffix}} /FS")              
+    endforeach()
+  endif()
   if(BUILD_SHARED_LIBS)
     set(Caffe_LINK caffe)
   else()
@@ -9,6 +18,8 @@ macro(caffe_set_caffe_link)
       set(Caffe_LINK -Wl,-force_load caffe)
     elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
       set(Caffe_LINK -Wl,--whole-archive caffe -Wl,--no-whole-archive)
+    elseif(MSVC)
+      set(Caffe_LINK caffe)
     endif()
   endif()
 endmacro()
@@ -62,27 +73,15 @@ function(caffe_pickup_caffe_sources root)
   caffe_source_group("Source\\Cuda"   GLOB "${root}/src/caffe/util/*.cu")
   caffe_source_group("Source\\Proto"  GLOB "${root}/src/caffe/proto/*.proto")
 
-  # source groups for test target
-  caffe_source_group("Include"      GLOB "${root}/include/caffe/test/test_*.h*")
-  caffe_source_group("Source"       GLOB "${root}/src/caffe/test/test_*.cpp")
-  caffe_source_group("Source\\Cuda" GLOB "${root}/src/caffe/test/test_*.cu")
-
   # collect files
-  file(GLOB test_hdrs    ${root}/include/caffe/test/test_*.h*)
-  file(GLOB test_srcs    ${root}/src/caffe/test/test_*.cpp)
   file(GLOB_RECURSE hdrs ${root}/include/caffe/*.h*)
   file(GLOB_RECURSE srcs ${root}/src/caffe/*.cpp)
-  list(REMOVE_ITEM  hdrs ${test_hdrs})
-  list(REMOVE_ITEM  srcs ${test_srcs})
 
   # adding headers to make the visible in some IDEs (Qt, VS, Xcode)
   list(APPEND srcs ${hdrs} ${PROJECT_BINARY_DIR}/caffe_config.h)
-  list(APPEND test_srcs ${test_hdrs})
 
   # collect cuda files
-  file(GLOB    test_cuda ${root}/src/caffe/test/test_*.cu)
   file(GLOB_RECURSE cuda ${root}/src/caffe/*.cu)
-  list(REMOVE_ITEM  cuda ${test_cuda})
 
   # add proto to make them editable in IDEs too
   file(GLOB_RECURSE proto_files ${root}/src/caffe/*.proto)
@@ -91,14 +90,10 @@ function(caffe_pickup_caffe_sources root)
   # convert to absolute paths
   caffe_convert_absolute_paths(srcs)
   caffe_convert_absolute_paths(cuda)
-  caffe_convert_absolute_paths(test_srcs)
-  caffe_convert_absolute_paths(test_cuda)
 
   # propagate to parent scope
   set(srcs ${srcs} PARENT_SCOPE)
   set(cuda ${cuda} PARENT_SCOPE)
-  set(test_srcs ${test_srcs} PARENT_SCOPE)
-  set(test_cuda ${test_cuda} PARENT_SCOPE)
 endfunction()
 
 ################################################################################################

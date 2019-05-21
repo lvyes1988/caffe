@@ -9,6 +9,10 @@ find_package(Boost 1.54 REQUIRED COMPONENTS system thread filesystem)
 list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${Boost_INCLUDE_DIRS})
 list(APPEND Caffe_LINKER_LIBS PUBLIC ${Boost_LIBRARIES})
 
+if(DEFINED MSVC AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 18.0.40629.0)
+  # Required for VS 2013 Update 4 or earlier.
+  list(APPEND Caffe_DEFINITIONS PUBLIC -DBOOST_NO_CXX11_TEMPLATE_ALIASES)
+endif()
 # ---[ Threads
 find_package(Threads REQUIRED)
 list(APPEND Caffe_LINKER_LIBS PRIVATE ${CMAKE_THREAD_LIBS_INIT})
@@ -64,21 +68,6 @@ if(USE_LMDB)
   if(ALLOW_LMDB_NOLOCK)
     list(APPEND Caffe_DEFINITIONS PRIVATE -DALLOW_LMDB_NOLOCK)
   endif()
-endif()
-
-# ---[ LevelDB
-if(USE_LEVELDB)
-  find_package(LevelDB REQUIRED)
-  list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${LevelDB_INCLUDES})
-  list(APPEND Caffe_LINKER_LIBS PUBLIC ${LevelDB_LIBRARIES})
-  list(APPEND Caffe_DEFINITIONS PUBLIC -DUSE_LEVELDB)
-endif()
-
-# ---[ Snappy
-if(USE_LEVELDB)
-  find_package(Snappy REQUIRED)
-  list(APPEND Caffe_INCLUDE_DIRS PRIVATE ${Snappy_INCLUDE_DIR})
-  list(APPEND Caffe_LINKER_LIBS PRIVATE ${Snappy_LIBRARIES})
 endif()
 
 # ---[ CUDA
@@ -186,22 +175,6 @@ if(BUILD_python)
       list(APPEND Caffe_INCLUDE_DIRS PRIVATE ${PYTHON_INCLUDE_DIRS} ${NUMPY_INCLUDE_DIR} PUBLIC ${Boost_INCLUDE_DIRS})
       list(APPEND Caffe_LINKER_LIBS PRIVATE ${PYTHON_LIBRARIES} PUBLIC ${Boost_LIBRARIES})
     endif()
-  endif()
-endif()
-
-# ---[ Matlab
-if(BUILD_matlab)
-  find_package(MatlabMex)
-  if(MATLABMEX_FOUND)
-    set(HAVE_MATLAB TRUE)
-  endif()
-
-  # sudo apt-get install liboctave-dev
-  find_program(Octave_compiler NAMES mkoctfile DOC "Octave C++ compiler")
-
-  if(HAVE_MATLAB AND Octave_compiler)
-    set(Matlab_build_mex_using "Matlab" CACHE STRING "Select Matlab or Octave if both detected")
-    set_property(CACHE Matlab_build_mex_using PROPERTY STRINGS "Matlab;Octave")
   endif()
 endif()
 

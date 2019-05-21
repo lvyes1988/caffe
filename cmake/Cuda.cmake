@@ -185,6 +185,8 @@ function(detect_cuDNN)
   # dynamic libs have different suffix in mac and linux
   if(APPLE)
     set(CUDNN_LIB_NAME "libcudnn.dylib")
+  elseif(MSVC)
+    set(CUDNN_LIB_NAME "cudnn")
   else()
     set(CUDNN_LIB_NAME "libcudnn.so")
   endif()

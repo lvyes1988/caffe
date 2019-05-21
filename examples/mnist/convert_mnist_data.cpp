@@ -10,9 +10,7 @@
 #include <glog/logging.h>
 #include <google/protobuf/text_format.h>
 
-#if defined(USE_LEVELDB) && defined(USE_LMDB)
-#include <leveldb/db.h>
-#include <leveldb/write_batch.h>
+#if defined(USE_LMDB)
 #include <lmdb.h>
 #endif
 
@@ -27,7 +25,7 @@
 #include "caffe/util/db.hpp"
 #include "caffe/util/format.hpp"
 
-#if defined(USE_LEVELDB) && defined(USE_LMDB)
+#if defined(USE_LMDB)
 
 using namespace caffe;  // NOLINT(build/namespaces)
 using boost::scoped_ptr;
@@ -118,7 +116,7 @@ int main(int argc, char** argv) {
   FLAGS_alsologtostderr = 1;
 
   gflags::SetUsageMessage("This script converts the MNIST dataset to\n"
-        "the lmdb/leveldb format used by Caffe to load data.\n"
+        "the lmdb format used by Caffe to load data.\n"
         "Usage:\n"
         "    convert_mnist_data [FLAGS] input_image_file input_label_file "
         "output_db_file\n"
@@ -142,6 +140,6 @@ int main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
   LOG(FATAL) << "This example requires LevelDB and LMDB; " <<
-  "compile with USE_LEVELDB and USE_LMDB.";
+  "compile with USE_LMDB.";
 }
-#endif  // USE_LEVELDB and USE_LMDB
+#endif  // USE_LMDB

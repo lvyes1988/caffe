@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros">
+    <BuildDir>$(SolutionDir)..\Build</BuildDir>
+    <!--NOTE: CpuOnlyBuild and UseCuDNN flags can't be set at the same time.-->
+    <CpuOnlyBuild>false</CpuOnlyBuild>
+    <UseCuDNN>true</UseCuDNN>
+    <UseNCCL>false</UseNCCL>
+    <UseMKL>true</UseMKL>
+    <CudaVersion>9.0</CudaVersion>
+    <!-- NOTE: If Python support is enabled, PythonDir (below) needs to be
+     set to the root of your Python installation. If your Python installation
+     does not contain debug libraries, debug build will not work. -->
+    <PythonSupport>false</PythonSupport>
+
+    <CudaDependencies></CudaDependencies>
+
+    <BoostIncludeFolder>$(SolutionDir)../3rdparty\boost.1.59.0.0\include</BoostIncludeFolder>
+    <BoostLibraryFolder>$(SolutionDir)../3rdparty\boost.1.59.0.0\lib-win64</BoostLibraryFolder>
+    <HDF5Root>$(SolutionDir)../3rdparty/hdf5-v120-complete.1.8.15.2</HDF5Root>
+    <GFlagsRoot>$(SolutionDir)../3rdparty\gflags.2.1.2.1</GFlagsRoot>
+    <GLogRoot>$(SolutionDir)../3rdparty\glog.0.3.3.0</GLogRoot>
+    <ProtobufRoot>$(SolutionDir)../3rdparty\protobuf-v120.2.6.1</ProtobufRoot>
+    <ProtocDir>$(SolutionDir)../3rdparty\protoc_x64.2.6.1\</ProtocDir>
+    <OpenCVRoot>$(SolutionDir)../3rdparty/opencv249/</OpenCVRoot>
+    <LMDBRoot>$(SolutionDir)../3rdparty\lmdb-v120-clean.0.9.14.0</LMDBRoot>
+    <OpenBLASRoot>$(SolutionDir)../3rdparty\OpenBLAS-0.2.14.1</OpenBLASRoot>
+    <NCCLRoot>$(SolutionDir)../3rdparty\NCCL</NCCLRoot>
+    <MKLRoot>$(SolutionDir)../3rdparty\mklml_win_2019.0.20180710</MKLRoot>
+
+    <!-- Set CUDA architecture suitable for your GPU.
+     Setting proper architecture is important to mimize your run and compile time. -->
+	<!-- GTX 1060    6.1 -->
+	<!-- -gencode arch=compute_61,code=sm_61 -->
+    <CudaArchitecture>compute_61,sm_61;</CudaArchitecture>
+
+    <!-- CuDNN supported -->
+    <CuDnnPath>C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v$(CudaVersion)</CuDnnPath>
+    <ScriptsDir>$(SolutionDir)\scripts</ScriptsDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(CpuOnlyBuild)'=='false'">
+      <CudaDependencies>cublas.lib;cuda.lib;curand.lib;cudart.lib</CudaDependencies>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(UseCuDNN)'=='true'">
+      <CudaDependencies>cudnn.lib;$(CudaDependencies)</CudaDependencies>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(UseCuDNN)'=='true' And $(CuDnnPath)!=''">
+    <LibraryPath>$(CuDnnPath)\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(CuDnnPath)\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(UseNCCL)'=='true' And $(NCCLRoot)!=''">
+    <CudaDependencies>nccl.lib;$(CudaDependencies)</CudaDependencies>
+    <LibraryPath>$(NCCLRoot)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(NCCLRoot)\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(UseMKL)'=='true' And $(MKLRoot)!=''">
+    <LibraryPath>$(MKLRoot)\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(MKLRoot)\include;$(IncludePath)</IncludePath>
+    <AdditionalDependencies>mklml.lib;$(AdditionalDependencies)</AdditionalDependencies>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(UseMKL)'=='false' Or $(MKLRoot)==''">
+    <LibraryPath>$(OpenBLASRoot)\lib\x64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(OpenBLASRoot)\include;$(IncludePath)</IncludePath>
+    <AdditionalDependencies>libopenblas.dll.a;$(AdditionalDependencies)</AdditionalDependencies>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir>$(BuildDir)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(BuildDir)\Int\$(ProjectName)\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IncludePath>$(SolutionDir)..\include;$(SolutionDir)..\include\caffe\proto;$(CUDA_PATH)\include;$(BoostIncludeFolder);$(HDF5Root)\include;$(GFlagsRoot)\include;$(GLogRoot)\include;$(ProtobufRoot)\include;$(OpenCVRoot)\include;$(LMDBRoot)\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PythonSupport)'=='true'">
+    <PythonDir>D:\Anaconda3\</PythonDir>
+    <LibraryPath>$(PythonDir)\libs;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(PythonDir)\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(CpuOnlyBuild)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>CPU_ONLY;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(UseCuDNN)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_CUDNN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <CudaCompile>
+      <Defines>USE_CUDNN</Defines>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(UseNCCL)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_NCCL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <CudaCompile>
+      <Defines>USE_NCCL</Defines>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(UseMKL)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>USE_MKL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <CudaCompile>
+      <Defines>USE_MKL</Defines>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(PythonSupport)'=='true'">
+    <ClCompile>
+      <PreprocessorDefinitions>WITH_PYTHON_LAYER;BOOST_PYTHON_STATIC_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;USE_OPENCV;USE_LMDB;USE_HDF5;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <Optimization>Full</Optimization>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(OutDir);$(CUDA_PATH)\lib\$(Platform);$(BoostLibraryFolder);$(HDF5Root)\lib\x64;$(GFlagsRoot)/x64/v100/dynamic\lib;$(GLogRoot)/lib/x64/v120/Release\dynamic;$(ProtobufRoot)\lib\x64\v120\Release;$(OpenCVRoot)\x64\vc10\lib;$(LMDBRoot)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libprotobuf.lib;lmdb.lib;libglog.lib;gflags.lib;hdf5.lib;hdf5_hl.lib;opencv_core249.lib;opencv_imgproc249.lib;opencv_highgui249.lib;$(AdditionalDependencies)</AdditionalDependencies>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <DisableSpecificWarnings>4819;</DisableSpecificWarnings>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(OutDir);$(CUDA_PATH)\lib\$(Platform);$(BoostLibraryFolder);$(HDF5Root)\lib\x64;$(GFlagsRoot)/x64/v100/dynamic\lib;$(GLogRoot)/lib/x64/v120/Release\dynamic;$(ProtobufRoot)\lib\x64\v120\Debug;$(OpenCVRoot)\x64\vc10\lib;$(LMDBRoot)\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libprotobuf.lib;lmdb.lib;libglog.lib;gflags.lib;hdf5.lib;hdf5_hl.lib;opencv_core249d.lib;opencv_imgproc249d.lib;opencv_highgui249d.lib;$(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+</Project>

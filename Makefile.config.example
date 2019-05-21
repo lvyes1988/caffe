@@ -9,7 +9,6 @@
 
 # uncomment to disable IO dependencies and corresponding data layers
 # USE_OPENCV := 0
-# USE_LEVELDB := 0
 # USE_LMDB := 0
 # This code is taken from https://github.com/sh1r0/caffe-android-lib
 # USE_HDF5 := 0
@@ -47,10 +46,10 @@ CUDA_ARCH := -gencode arch=compute_20,code=sm_20 \
 		-gencode arch=compute_61,code=compute_61
 
 # BLAS choice:
-# atlas for ATLAS (default)
+# atlas for ATLAS
 # mkl for MKL
-# open for OpenBlas
-BLAS := atlas
+# open for OpenBlas (default)
+BLAS := open
 # Custom (MKL/ATLAS/OpenBLAS) include and lib directories.
 # Leave commented to accept the defaults for your choice of BLAS
 # (which should work)!
@@ -60,11 +59,6 @@ BLAS := atlas
 # Homebrew puts openblas in a directory that is not on the standard search path
 # BLAS_INCLUDE := $(shell brew --prefix openblas)/include
 # BLAS_LIB := $(shell brew --prefix openblas)/lib
-
-# This is required only if you will compile the matlab interface.
-# MATLAB directory should contain the mex binary in /bin.
-# MATLAB_DIR := /usr/local
-# MATLAB_DIR := /Applications/MATLAB_R2012b.app
 
 # NOTE: this is required only if you will compile the python interface.
 # We need to be able to find Python.h and numpy/arrayobject.h.
@@ -115,9 +109,6 @@ DISTRIBUTE_DIR := distribute
 
 # Uncomment for debugging. Does not work on OSX due to https://github.com/BVLC/caffe/issues/171
 # DEBUG := 1
-
-# The ID of the GPU that 'make runtest' will use to run unit tests.
-TEST_GPUID := 0
 
 # enable pretty build (comment to see full commands)
 Q ?= @
